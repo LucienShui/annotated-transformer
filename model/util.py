@@ -17,10 +17,10 @@ class LayerNorm(torch.nn.Module):
 
 
 class ResidualConnect(torch.nn.Module):
-    def __init__(self, hidden_size: int, dropout_rate: float):
+    def __init__(self, hidden_size: int, dropout_prob: float):
         super().__init__()
         self.hidden_size: int = hidden_size
-        self.dropout_rate: float = dropout_rate
+        self.dropout_prob: float = dropout_prob
         self.layer_norm = LayerNorm(hidden_size)
         self.dropout = torch.nn.Dropout()
 
