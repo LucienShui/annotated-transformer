@@ -1,7 +1,6 @@
 import torch
 from .attention import MultiHeadAttention, PositionWiseFeedForward
 from .util import ResidualConnect, LayerNorm
-from copy import deepcopy
 
 
 class DecoderLayer(torch.nn.Module):
@@ -13,12 +12,12 @@ class DecoderLayer(torch.nn.Module):
         self.dropout_prob: float = dropout_prob
 
         self.self_attention = MultiHeadAttention(self.hidden_size, self.num_attention_heads, self.dropout_prob)
-        self.encoder_decoder_attention = deepcopy(self.self_attention)
+        self.encoder_decoder_attention = MultiHeadAttention(self.hidden_size, self.num_attention_heads, self.dropout_prob)
         self.feed_forward = PositionWiseFeedForward(self.hidden_size, self.intermediate_size, self.dropout_prob)
 
         self.attention_residual = ResidualConnect(self.hidden_size, self.dropout_prob)
-        self.memory_attention_residual = deepcopy(self.attention_residual)
-        self.feed_forward_residual = deepcopy(self.attention_residual)
+        self.memory_attention_residual = ResidualConnect(self.hidden_size, self.dropout_prob)
+        self.feed_forward_residual = ResidualConnect(self.hidden_size, self.dropout_prob)
 
     def forward(self, hidden_states: torch.Tensor, mask: torch.Tensor,
                 encoder_hidden_states: torch.Tensor, encoder_mask: torch.Tensor) -> torch.Tensor:

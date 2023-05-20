@@ -2,7 +2,6 @@ import torch
 from .attention import MultiHeadAttention, PositionWiseFeedForward
 from .util import ResidualConnect, LayerNorm
 from typing import Tuple
-from copy import deepcopy
 
 
 class EncoderLayer(torch.nn.Module):
@@ -15,7 +14,7 @@ class EncoderLayer(torch.nn.Module):
 
         self.self_attention = MultiHeadAttention(self.hidden_size, self.num_attention_heads, self.dropout_prob)
         self.residual_attention = ResidualConnect(self.hidden_size, self.dropout_prob)
-        self.residual_feed_forward = deepcopy(self.residual_attention)
+        self.residual_feed_forward = ResidualConnect(self.hidden_size, self.dropout_prob)
         self.feed_forward = PositionWiseFeedForward(self.hidden_size, self.intermediate_size, self.dropout_prob)
 
     def forward(self, hidden_states: torch.Tensor, mask: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:

@@ -48,7 +48,7 @@ class MultiHeadAttention(torch.nn.Module):
         batch_size: int = q.size(0)
 
         q, k, v = [
-            w(x).view(batch_size, -1, self.num_attention_heads, self.hidden_size, self.d_k).transpose(1, 2)
+            w(x).view(batch_size, -1, self.num_attention_heads, self.d_k).transpose(1, 2)
             for w, x in zip(self.linear_list, (q, k, v))
         ]
         x, _ = self.attention(q, k, v, mask=mask)

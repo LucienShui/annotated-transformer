@@ -27,12 +27,12 @@ class Transformer(torch.nn.Module):
                 decoder_input_ids: torch.Tensor, decoder_mask: torch.Tensor):
         return self.decode(decoder_input_ids, decoder_mask, self.encoder(encoder_input_ids, encoder_mask), encoder_mask)
 
-    def encode(self, encoder_input_ids: torch.Tensor, encoder_mask: torch.Tensor) -> torch.Tensor:
-        return self.encoder(self.embedding(encoder_input_ids), encoder_mask)
+    def encode(self, input_ids: torch.Tensor, mask: torch.Tensor) -> torch.Tensor:
+        return self.encoder(self.embedding(input_ids), mask)
 
     def decode(self, input_dis: torch.Tensor, mask: torch.Tensor,
                encoder_hidden_states: torch.Tensor, encoder_mask: torch.Tensor) -> torch.Tensor:
-        return self.decoder(input_dis, mask, encoder_hidden_states, encoder_mask)
+        return self.decoder(self.embedding(input_dis), mask, encoder_hidden_states, encoder_mask)
 
 
 class TransformerWithLMHead(torch.nn.Module):
@@ -52,7 +52,16 @@ class TransformerWithLMHead(torch.nn.Module):
         self.lm_head = torch.nn.Linear(self.hidden_size, self.vocab_size)
 
     def forward(self, encoder_input_ids: torch.Tensor, encoder_mask: torch.Tensor,
-                decoder_input_ids: torch.Tensor, decoder_mask: torch.Tensor):
+                decoder_input_ids: torch.Tensor, decoder_mask: torch.Tensor) -> torch.Tensor:
         hidden_states: torch.Tensor = self.transformer(encoder_input_ids, encoder_mask, decoder_input_ids, decoder_mask)
         logits: torch.Tensor = self.lm_head(hidden_states)
+        return torch.softmax(logits[:, -1, :], dim=1)
 
+    def encode(self, input_ids: torch.Tensor, mask: torch.Tensor) -> torch.Tensor:
+        return self.transformer.encode(input_ids, mask)
+
+    def decode(self, input_dis: torch.Tensor, mask: torch.Tensor,
+               encoder_hidden_states: torch.Tensor, encoder_mask: torch.Tensor) -> torch.Tensor:
+        hidden_states: torch.Tensor = self.transformer.decode(input_dis, mask, encoder_hidden_states, encoder_mask)
+        logits: torch.Tensor = self.lm_head(hidden_states[:, -1, :]).squeeze(1)
+        return torch.softmax(logits, dim=1)
